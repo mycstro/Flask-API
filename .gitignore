@@ -1,0 +1,10 @@
+.idea/
+env/
+node_modules/
+package-lock.json
+package.json
+api.py
+apiAI.py
+apiAI2.py
+apiAI3.py
+books.db
