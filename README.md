@@ -140,8 +140,10 @@ _File Name: *`react-flask-app.service`*_
 
 ### Create Backend Dockerfile
 
+**Build python container**
+--------------------------------
 _File Name: *`Dockerfile.api`*_
-----------------------------------
+--------------------------------
     FROM python:3.9
     WORKDIR /app
     COPY --from=build-step /app/build ./build
@@ -152,15 +154,20 @@ _File Name: *`Dockerfile.api`*_
     RUN pip install -r ./requirements.txt
     ENV FLASK_ENV production
 
-    EXPOSE 3000
-    WORKDIR /app/api
-    CMD ["gunicorn", "-b", ":3000", "app:api"]
+    ENTRYPOINT ["./gunicorn.sh"]
+
+**Build sh script**
+----------------------------
+_File Name: *`gunicorn.sh`*
+----------------------------
+    #!/bin/sh
+    gunicorn --chdir app app:app -w 2 --threads 2 -b 0.0.0.0:80
 
 ### Create Frontend Dockerfile
 
 _File Name: *`Dockerfile.client`*_
 ------------------------------------
-**Build step #1: build the React front end**
+**Build the React front end**
 ---------------------------------------------
     FROM node:16-alpine as build-step
     WORKDIR /app
@@ -171,7 +178,7 @@ _File Name: *`Dockerfile.client`*_
     RUN yarn install
     RUN yarn build
 ----------------------------------------------
-**Build step #2: build an nginx container**
+**Build an nginx container**
 ----------------------------------------------
     FROM nginx:stable-alpine
     COPY --from=build-step /app/build /usr/share/nginx/html
