@@ -69,7 +69,74 @@ Prepare and deploy
 
 ### Prepare nginx and backend service
 * Command: `cd react-flask-app` **Move into the directory**
-* Command: `mkdir deployment
+* Command: `mkdir deployment`
+* Command:  `cd deployment`
+
+### Create Nginx and Service files
+
+_File Name: *`nginx.default.conf`*_
+-----------------------------------_
+    server {
+        listen       80;
+        server_name  localhost;
+
+        root   /usr/share/nginx/html;
+        index index.html;
+        error_page   500 502 503 504  /50x.html;
+
+        location / {
+            try_files $uri $uri/ =404;
+            add_header Cache-Control "no-cache";
+        }
+
+        location /static {
+            expires 1y;
+            add_header Cache-Control "public";
+        }
+
+        location /api {
+            proxy_pass http://api:5000;
+        }
+    }
+
+_File Name: *`react-flask-app.nginx`*_
+--------------------------------------
+    server {
+        listen 80;
+        root /home/ubuntu/react-flask-app/build;
+        server_name _;
+        index index.html;
+
+        location / {
+            try_files $uri $uri/ /index.html;
+            add_header Cache-Control "no-cache";
+        }
+
+        location /static {
+            expires 1y;
+            add_header Cache-Control "public";
+        }
+
+        location /api {
+            include proxy_params;
+            proxy_pass http://localhost:5000;
+        }
+    }
+
+_File Name" *`react-flask-app.service`*_
+----------------------------------------
+    [Unit]
+    Description=A simple Flask API
+    After=network.target
+
+    [Service]
+    User=ubuntu
+    WorkingDirectory=/home/ubuntu/react-flask-app/api
+    ExecStart=/home/ubuntu/react-flask-app/api/venv/bin/gunicorn -b 127.0.0.1:5000 api:app
+    Restart=always
+
+    [Install]
+    WantedBy=multi-user.target
 
 ### Create Backend Dockerfile
 
@@ -89,9 +156,11 @@ _File Name: *`Dockerfile.api`*_
     WORKDIR /app/api
     CMD ["gunicorn", "-b", ":3000", "app:api"]
 
+### Create Frontend Dockerfile
+
 _File Name: *`Dockerfile.client`*_
 ------------------------------------
-### Build step #1: build the React front end
+**Build step #1: build the React front end**
     FROM node:16-alpine as build-step
     WORKDIR /app
     ENV PATH /app/node_modules/.bin:$PATH
@@ -101,10 +170,12 @@ _File Name: *`Dockerfile.client`*_
     RUN yarn install
     RUN yarn build
 
-### Build step #2: build an nginx container
+*** Build step #2: build an nginx container**
     FROM nginx:stable-alpine
     COPY --from=build-step /app/build /usr/share/nginx/html
     COPY deployment/nginx.default.conf /etc/nginx/conf.d/default.conf
+
+### Create docker-compose.yml
 
 _File Name: *`docker-compose.yml`*_
 ------------------------------------
@@ -121,3 +192,6 @@ _File Name: *`docker-compose.yml`*_
         image: react-flask-app-client
         ports:
         - "3000:80"
+
+### Build Dockers
+* Command: `docker-compose up`
