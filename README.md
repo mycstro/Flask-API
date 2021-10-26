@@ -42,9 +42,9 @@ Create and test front and backend frameworks
         FLASK_ENV=development
 
 * *Append "proxy": "http:///localhost:5000" to end of package.json*
-* *Append 
-    - "start-api": "cd api && venv/bin/flask run --no-debugger", to package.json[scripts] - (Linux)
-    - "start-api": "cd api && venv/Scripts/flask run --no-debugger", to package.json[scripts] - (Windows)*
+* *Append*
+    - *"start-api": "cd api && venv/bin/flask run --no-debugger", to package.json[scripts] - (Linux)*
+    - *"start-api": "cd api && venv/Scripts/flask run --no-debugger", to package.json[scripts] - (Windows)*
 
 ### Test Frontend
 
