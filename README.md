@@ -26,16 +26,20 @@ Create and test front and backend frameworks
 * Command: `pip install flask flask-restful flask-jwt pandas python-dotenv gunicorn` **Install needed packages**
 * Command: `pip freeze > requirements.txt` **Write install packages to txt**
 
-* *Create `__init__.py` and add the following to bring [app] to the top level of the package*
-    from flask import Flask
+* *Add the following to bring [app] to the top level of the package*
+    _File Name: *`__init.py`*_
+    ----------------------------
+        from flask import Flask
 
-    app = Flask(__name__, static_folder='../build', static_url_path='/')
+        app = Flask(__name__, static_folder='../build', static_url_path='/')
     
-    from api import api
+        from api import api
 
-* *Create `.flaskenv` and add the following to add the api to the environemnt varibles on run*
-    FLASK_APP=api.py
-    FLASK_ENV=development
+* *Add the following to add the api app to the environemnt varibles on run*
+    _File Name: *`.flaskenv`*_
+    -----------------------------
+        FLASK_APP=api.py
+        FLASK_ENV=development
 
 * *Append "proxy": "http:///localhost:5000" to end of package.json*
 * *Append "start-api": "cd api && venv/bin/flask run --no-debugger", to package.json[scripts] - (Linux)*
@@ -52,7 +56,7 @@ Create and test front and backend frameworks
 * Command: `yarn start-api` **Start app to test use Ctrl-C to terminate**
 
 ### Create Build
-Command: `yarn build`
+* Command: `yarn build`
 
 ### Serve Build
 * Command: `yarn global add services`
@@ -68,23 +72,23 @@ Prepare and deploy
 
 ### Create Backend Dockerfile
 
-__File Name: *`Dockerfile.api`*__
+_File Name: *`Dockerfile.api`*_
 ----------------------------------
-FROM python:3.9
-WORKDIR /app
-COPY --from=build-step /app/build ./build
+    FROM python:3.9
+    WORKDIR /app
+    COPY --from=build-step /app/build ./build
 
-RUN mkdir ./api
-COPY api/requirements.txt api/api.py api/.flaskenv ./
-RUN python -m pip install --upgrade pip
-RUN pip install -r ./requirements.txt
-ENV FLASK_ENV production
+    RUN mkdir ./api
+    COPY api/requirements.txt api/api.py api/.flaskenv ./
+    RUN python -m pip install --upgrade pip
+    RUN pip install -r ./requirements.txt
+    ENV FLASK_ENV production
 
-EXPOSE 3000
-WORKDIR /app/api
-CMD ["gunicorn", "-b", ":3000", "app:api"]
+    EXPOSE 3000
+    WORKDIR /app/api
+    CMD ["gunicorn", "-b", ":3000", "app:api"]
 
-__File Name: *`Dockerfile.client`*__
+_File Name: *`Dockerfile.client`*_
 ------------------------------------
 ### Build step #1: build the React front end
     FROM node:16-alpine as build-step
@@ -97,6 +101,22 @@ __File Name: *`Dockerfile.client`*__
     RUN yarn build
 
 ### Build step #2: build an nginx container
-FROM nginx:stable-alpine
-COPY --from=build-step /app/build /usr/share/nginx/html
-COPY deployment/nginx.default.conf /etc/nginx/conf.d/default.conf
+    FROM nginx:stable-alpine
+    COPY --from=build-step /app/build /usr/share/nginx/html
+    COPY deployment/nginx.default.conf /etc/nginx/conf.d/default.conf
+
+_File Name: *`docker-compose.yml`*_
+------------------------------------
+    services:
+    api:
+        build:
+        context: .
+        dockerfile: Dockerfile.api
+        image: react-flask-app-api
+    client:
+        build:
+        context: .
+        dockerfile: Dockerfile.client
+        image: react-flask-app-client
+        ports:
+        - "3000:80"
