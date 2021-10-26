@@ -75,7 +75,7 @@ Prepare and deploy
 ### Create Nginx and Service files
 
 _File Name: *`nginx.default.conf`*_
------------------------------------_
+------------------------------------
     server {
         listen       80;
         server_name  localhost;
@@ -123,7 +123,7 @@ _File Name: *`react-flask-app.nginx`*_
         }
     }
 
-_File Name" *`react-flask-app.service`*_
+_File Name: *`react-flask-app.service`*_
 ----------------------------------------
     [Unit]
     Description=A simple Flask API
