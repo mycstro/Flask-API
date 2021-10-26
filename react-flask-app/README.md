@@ -39,32 +39,102 @@ Instead, it will copy all the configuration files and the transitive dependencie
 
 You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
 
-## Learn More
+# My Steps
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+The step I took to create this project on Windows WSL Linux Docker  .
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Step One
 
-### Code Splitting
+Create and test front and backend frameworks
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Create Frontend Framework
 
-### Analyzing the Bundle Size
+* Command: `npx create-react-app react-flask-app` **Create app using npm**
+* *Modified `App.js` to use React's __useState & useEffect__ && React-Router-Dom*
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Create Backend Framework
 
-### Making a Progressive Web App
+* Command: `cd react-flask-app` **Move into the directory**
+* Command: `mkdir api` **Create Directory for api**
+* Command: `cd api` **Move into the directory**
+* Command: `python3 -m venv venv` **Create virtual environment**
+* Command: `source venv/bin/activate` **Activate virtual enviornment - (Linux)**
+* Command: `venv\Scripts\activate` **Activate virtual environment - (Windows)**
+* Command: `python -m pip install --upgrade pip` **Upgrade pip**
+* Command: `pip install flask flask-restful flask-jwt pandas python-dotenv gunicorn` **Install needed packages**
+* Command: `pip freeze > requirements.txt` **Write install packages to txt**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+* *Create `__init__.py` and add the following to bring [app] to the top level of the package*
+    from flask import Flask
 
-### Advanced Configuration
+    app = Flask(__name__, static_folder='../build', static_url_path='/')
+    
+    from api import api
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+* *Create `.flaskenv` and add the following to add the api to the environemnt varibles on run*
+    FLASK_APP=api.py
+    FLASK_ENV=development
 
-### Deployment
+* *Append "proxy": "http:///localhost:5000" to end of package.json*
+* *Append "start-api": "cd api && venv/bin/flask run --no-debugger", to package.json[scripts] - (Linux)*
+  *Append "start-api": "cd api && venv/Scripts/flask run --no-debugger", to package.json[scripts] - (Windows)*
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Test Frontend
 
-### `npm run build` fails to minify
+* Command: `npm install --global yarn` **Install Yarn** 
+* Command: `cd react-flask-app` **Move into the directory**
+* Command: `yarn start` **Start app to test use Ctrl-C to terminate**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Test Backend
+* Command: `cd react-flask-app` **Move into the directory**
+* Command: `yarn start-api` **Start app to test use Ctrl-C to terminate**
+
+### Create Build
+Command: `yarn build`
+
+### Serve Build
+* Command: `yarn global add services`
+* Command: `serve -s build`
+
+## Step Two
+
+Prepare and deploy
+
+### Prepare nginx and backend service
+* Command: `cd react-flask-app` **Move into the directory**
+* Command: `mkdir deployment
+
+### Create Backend Dockerfile
+
+__File Name: *`Dockerfile.api`*__
+----------------------------------
+FROM python:3.9
+WORKDIR /app
+COPY --from=build-step /app/build ./build
+
+RUN mkdir ./api
+COPY api/requirements.txt api/api.py api/.flaskenv ./
+RUN python -m pip install --upgrade pip
+RUN pip install -r ./requirements.txt
+ENV FLASK_ENV production
+
+EXPOSE 3000
+WORKDIR /app/api
+CMD ["gunicorn", "-b", ":3000", "app:api"]
+
+__File Name: *`Dockerfile.client`*__
+------------------------------------
+# Build step #1: build the React front end
+FROM node:16-alpine as build-step
+WORKDIR /app
+ENV PATH /app/node_modules/.bin:$PATH
+COPY package.json yarn.lock ./
+COPY ./src ./src
+COPY ./public ./public
+RUN yarn install
+RUN yarn build
+
+# Build step #2: build an nginx container
+FROM nginx:stable-alpine
+COPY --from=build-step /app/build /usr/share/nginx/html
+COPY deployment/nginx.default.conf /etc/nginx/conf.d/default.conf
