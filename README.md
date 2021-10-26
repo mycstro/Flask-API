@@ -26,7 +26,7 @@ Create and test front and backend frameworks
 * Command: `pip install flask flask-restful flask-jwt pandas python-dotenv gunicorn` **Install needed packages**
 * Command: `pip freeze > requirements.txt` **Write install packages to txt**
 
-* *Add the following to bring [app] to the top level of the package*
+* Add the following to bring [app] to the top level of the package.
     _File Name: *`__init.py`*_
     ----------------------------
         from flask import Flask
@@ -35,7 +35,7 @@ Create and test front and backend frameworks
     
         from api import api
 
-* *Add the following to add the api app to the environemnt varibles on run*
+* Add the following to add the api app to the environemnt varibles on run.
     _File Name: *`.flaskenv`*_
     -----------------------------
         FLASK_APP=api.py
