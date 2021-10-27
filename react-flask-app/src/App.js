@@ -35,7 +35,7 @@ function App() {
                   >
                     Learn React
                   </a>
-                  <p>The current time is {currentTime}.</p>
+                  <p>The time, {currentTime} is really a big number!.</p>
               </Route>
               <Route path="/about">
                   <p>This page is about me!</p>
