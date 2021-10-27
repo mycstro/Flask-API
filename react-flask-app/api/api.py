@@ -1,9 +1,9 @@
-from api import app
 from flask import Flask, request, jsonify
 from flask_restful import Resource, Api, reqparse, abort, fields, marshal_with
 import pandas as pd
 import ast, json, time
 
+app = Flask(__name__, static_folder='../build', static_url_path='/')
 api = Api(app)
 
 @app.route('/api')

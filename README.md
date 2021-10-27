@@ -146,22 +146,14 @@ _File Name: *`Dockerfile.api`*_
 --------------------------------
     FROM python:3.9
     WORKDIR /app
-    COPY --from=build-step /app/build ./build
 
-    RUN mkdir ./api
     COPY api/requirements.txt api/api.py api/.flaskenv ./
     RUN python -m pip install --upgrade pip
     RUN pip install -r ./requirements.txt
     ENV FLASK_ENV production
 
-    ENTRYPOINT ["./gunicorn.sh"]
-
-**Build sh script**
-----------------------------
-_File Name: *`gunicorn.sh`*
-----------------------------
-    #!/bin/sh
-    gunicorn --chdir app app:app -w 2 --threads 2 -b 0.0.0.0:80
+    EXPOSE 5000
+    ENTRYPOINT ["gunicorn", "-b", ":5000", "api:app"]
 
 ### Create Frontend Dockerfile
 

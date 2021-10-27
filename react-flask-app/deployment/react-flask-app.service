@@ -1,5 +1,5 @@
 [Unit]
-Description=A simple Flask API
+Description=A simple gunicorn instance for Flask API
 After=network.target
 
 [Service]
